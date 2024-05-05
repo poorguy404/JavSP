@@ -17,7 +17,12 @@ def get_id(filepath: str) -> str:
     filename = os.path.basename(filepath)
     filename = cfg.MovieID.ignore_pattern.sub('', filename)
     filename_lc = filename.lower()
-    if 'fc2' in filename_lc:
+    # 有的番号会包含phub,先对phub判断
+    if filename_lc.startswith('phub'):
+        match = re.match(r'^phub-([a-z\d]{8,})', filename, re.I)
+        if match:
+            return 'phub-' + match.group(1)
+    elif 'fc2' in filename_lc:
         # 根据FC2 Club的影片数据，FC2编号为5-7个数字
         match = re.search(r'fc2[^a-z\d]{0,5}(ppv[^a-z\d]{0,5})?(\d{5,7})', filename, re.I)
         if match:
@@ -140,6 +145,9 @@ def guess_av_type(avid: str) -> str:
     match = re.match(r'^GYUTTO-(\d+)',avid,re.I)
     if match:
         return 'gyutto'
+    match = re.match(r'^phub-([a-z\d]{8,})', avid, re.I)
+    if match:
+        return 'phub'
     # 如果传入的avid完全匹配cid的模式，则将影片归类为cid
     cid = get_cid(avid)
     if cid == avid:
